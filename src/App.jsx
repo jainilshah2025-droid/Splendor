@@ -256,7 +256,7 @@ const css=`
   .divider::before,.divider::after{content:'';flex:1;height:1px;background:#e4dfd6;}
   .field{margin-bottom:14px;}
   .field label{display:block;font-size:.65rem;letter-spacing:.16em;text-transform:uppercase;color:#999;margin-bottom:5px;font-weight:500;}
-  .field input{width:100%;padding:10px 13px;border:1.5px solid #ddd;border-radius:8px;font-family:'Jost',sans-serif;font-size:.85rem;background:#fdfcfa;outline:none;transition:border .15s;}
+  .field input{width:100%;padding:10px 13px;border:1.5px solid #ddd;border-radius:8px;font-family:'Jost',sans-serif;font-size:.85rem;background:#111111;outline:none;transition:border .15s;}
   .field input:focus{border-color:#1a1a1a;}
   .field input.code{font-size:1.2rem;letter-spacing:.35em;text-transform:uppercase;text-align:center;font-family:'Cormorant Garamond',serif;font-weight:600;}
   .btn{display:block;width:100%;padding:10px 14px;border:none;border-radius:8px;font-family:'Jost',sans-serif;font-size:.72rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .15s;margin-top:8px;text-align:center;}
