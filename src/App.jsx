@@ -1,29 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// ─── PASTE YOUR KEYS HERE ─────────────────────────────────────────────────────
 const SUPABASE_URL = "https://bsfwnsekxivdcbcijoef.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzZnduc2VreGl2ZGNiY2lqb2VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTc5ODEsImV4cCI6MjA4ODU5Mzk4MX0.N-UlXJErN4Po6pAQrHOdWoJ1dJ4_uJ6vICayTf5e_qQ";
-// ─────────────────────────────────────────────────────────────────────────────
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const POLL_INTERVAL = 3000;
 
-const GEM_COLORS = ["white", "blue", "green", "red", "black"];
-const GEM_HEX = { white: "#f0ece3", blue: "#5b8dd9", green: "#5cb85c", red: "#d9534f", black: "#2c2c2c", gold: "#f0c040" };
-const GEM_TEXT = { white: "#555", blue: "#fff", green: "#fff", red: "#fff", black: "#fff", gold: "#333" };
+const GEM_COLORS = ["white","blue","green","red","black"];
+const GEM_HEX = {white:"#f0ece3",blue:"#5b8dd9",green:"#5cb85c",red:"#d9534f",black:"#2c2c2c",gold:"#f0c040"};
+const GEM_TEXT = {white:"#555",blue:"#fff",green:"#fff",red:"#fff",black:"#fff",gold:"#333"};
 
 const NOBLES = [
-  { id:"n1",points:3,requires:{white:4,blue:4}},
-  { id:"n2",points:3,requires:{white:3,blue:3,black:3}},
-  { id:"n3",points:3,requires:{blue:4,green:4}},
-  { id:"n4",points:3,requires:{green:4,red:4}},
-  { id:"n5",points:3,requires:{red:4,black:4}},
-  { id:"n6",points:3,requires:{white:4,red:4}},
-  { id:"n7",points:3,requires:{white:3,red:3,green:3}},
-  { id:"n8",points:3,requires:{blue:3,green:3,red:3}},
-  { id:"n9",points:3,requires:{white:3,black:3,blue:3}},
-  { id:"n10",points:3,requires:{black:3,green:3,red:3}},
+  {id:"n1",points:3,requires:{white:4,blue:4}},{id:"n2",points:3,requires:{white:3,blue:3,black:3}},
+  {id:"n3",points:3,requires:{blue:4,green:4}},{id:"n4",points:3,requires:{green:4,red:4}},
+  {id:"n5",points:3,requires:{red:4,black:4}},{id:"n6",points:3,requires:{white:4,red:4}},
+  {id:"n7",points:3,requires:{white:3,red:3,green:3}},{id:"n8",points:3,requires:{blue:3,green:3,red:3}},
+  {id:"n9",points:3,requires:{white:3,black:3,blue:3}},{id:"n10",points:3,requires:{black:3,green:3,red:3}},
 ];
 
 const TIER1 = [
@@ -125,11 +118,7 @@ const TIER3 = [
   {id:"t3_20",tier:3,points:5,bonus:"black",cost:{red:7,green:3}},
 ];
 
-function shuffle(arr) {
-  const a=[...arr];
-  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
-  return a;
-}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function emptyGems(){return{white:0,blue:0,green:0,red:0,black:0,gold:0};}
 function totalGems(g){return Object.values(g).reduce((a,b)=>a+b,0);}
 function playerBonuses(p){const b=emptyGems();for(const c of(p.cards||[]))b[c.bonus]=(b[c.bonus]||0)+1;return b;}
@@ -161,82 +150,39 @@ function applyAction(state,action,idx){
   const g=JSON.parse(JSON.stringify(state));
   const cp=g.players[idx];
   const log=(m)=>{g.log=[...(g.log||[]).slice(-30),m];};
-
   if(action.type==="TAKE_GEMS"){
     for(const[c,v]of Object.entries(action.gems)){if(v>0){g.bank[c]-=v;cp.gems[c]=(cp.gems[c]||0)+v;}}
     const names=Object.entries(action.gems).filter(([,v])=>v>0).map(([c,v])=>`${v} ${c}`).join(", ");
     log(`${cp.name} takes ${names}.`);
   }
-
   if(action.type==="BUY_CARD"){
     let card;
-    if(action.fromReserved){
-      card=(cp.reserved||[]).find(c=>c.id===action.cardId);
-      cp.reserved=cp.reserved.filter(c=>c.id!==action.cardId);
-    } else {
-      for(const t of[1,2,3]){
-        card=g[`tier${t}Board`].find(c=>c.id===action.cardId);
-        if(card){
-          g[`tier${t}Board`]=g[`tier${t}Board`].filter(c=>c.id!==card.id);
-          if(g[`tier${t}Deck`].length>0)g[`tier${t}Board`].push(g[`tier${t}Deck`].shift());
-          break;
-        }
-      }
-    }
+    if(action.fromReserved){card=(cp.reserved||[]).find(c=>c.id===action.cardId);cp.reserved=cp.reserved.filter(c=>c.id!==action.cardId);}
+    else{for(const t of[1,2,3]){card=g[`tier${t}Board`].find(c=>c.id===action.cardId);if(card){g[`tier${t}Board`]=g[`tier${t}Board`].filter(c=>c.id!==card.id);if(g[`tier${t}Deck`].length>0)g[`tier${t}Board`].push(g[`tier${t}Deck`].shift());break;}}}
     if(!card)return g;
     const eff=effectiveCost(card,cp);
-    for(const[c,n]of Object.entries(eff)){
-      const use=Math.min(cp.gems[c]||0,n);
-      cp.gems[c]-=use;g.bank[c]+=use;
-      const extra=n-use;
-      if(extra>0){cp.gems.gold-=extra;g.bank.gold+=extra;}
-    }
+    for(const[c,n]of Object.entries(eff)){const use=Math.min(cp.gems[c]||0,n);cp.gems[c]-=use;g.bank[c]+=use;const extra=n-use;if(extra>0){cp.gems.gold-=extra;g.bank.gold+=extra;}}
     cp.cards=[...(cp.cards||[]),card];
     log(`${cp.name} buys a ${card.bonus} card (${card.points}pts).`);
   }
-
   if(action.type==="RESERVE_CARD"){
     let card;
-    if(action.fromDeck){
-      const dk=`tier${action.tier}Deck`;
-      if(!g[dk].length)return g;
-      card=g[dk][0];g[dk]=g[dk].slice(1);
-    } else {
-      for(const t of[1,2,3]){
-        card=g[`tier${t}Board`].find(c=>c.id===action.cardId);
-        if(card){
-          g[`tier${t}Board`]=g[`tier${t}Board`].filter(c=>c.id!==card.id);
-          if(g[`tier${t}Deck`].length>0)g[`tier${t}Board`].push(g[`tier${t}Deck`].shift());
-          break;
-        }
-      }
-    }
+    if(action.fromDeck){const dk=`tier${action.tier}Deck`;if(!g[dk].length)return g;card=g[dk][0];g[dk]=g[dk].slice(1);}
+    else{for(const t of[1,2,3]){card=g[`tier${t}Board`].find(c=>c.id===action.cardId);if(card){g[`tier${t}Board`]=g[`tier${t}Board`].filter(c=>c.id!==card.id);if(g[`tier${t}Deck`].length>0)g[`tier${t}Board`].push(g[`tier${t}Deck`].shift());break;}}}
     if(!card)return g;
     if(g.bank.gold>0&&totalGems(cp.gems)<10){cp.gems.gold=(cp.gems.gold||0)+1;g.bank.gold--;}
     cp.reserved=[...(cp.reserved||[]),card];
     log(`${cp.name} reserves a ${card.bonus} card.`);
   }
-
   const eligible=checkNobles(g.nobles,cp);
-  if(eligible.length>0){
-    const noble=eligible[0];
-    g.nobles=g.nobles.filter(n=>n.id!==noble.id);
-    cp.nobles=[...(cp.nobles||[]),noble];
-    log(`👑 ${cp.name} receives a Noble (+${noble.points}pts)!`);
-  }
-
+  if(eligible.length>0){const noble=eligible[0];g.nobles=g.nobles.filter(n=>n.id!==noble.id);cp.nobles=[...(cp.nobles||[]),noble];log(`👑 ${cp.name} receives a Noble (+${noble.points}pts)!`);}
   const pts=calcPoints(cp);
   if(pts>=15&&!g.lastRound){g.lastRound=true;g.lastRoundStarter=idx;log(`${cp.name} hit 15+ points! Last round begins.`);}
-
   const next=(idx+1)%g.players.length;
   if(g.lastRound&&next===g.lastRoundStarter){
     const sorted=[...g.players].map(p=>({name:p.name,pts:calcPoints(p),cards:(p.cards||[]).length})).sort((a,b)=>b.pts-a.pts||a.cards-b.cards);
-    g.winner=sorted[0].name;
-    log(`🏆 Game over! ${g.winner} wins with ${sorted[0].pts} points!`);
-  } else {
-    g.currentPlayer=next;
-    log(`${g.players[next].name}'s turn.`);
-  }
+    g.winner=sorted[0].name;log(`🏆 Game over! ${g.winner} wins with ${sorted[0].pts} points!`);
+  }else{g.currentPlayer=next;log(`${g.players[next].name}'s turn.`);}
   return g;
 }
 
@@ -256,7 +202,7 @@ const css=`
   .divider::before,.divider::after{content:'';flex:1;height:1px;background:#e4dfd6;}
   .field{margin-bottom:14px;}
   .field label{display:block;font-size:.65rem;letter-spacing:.16em;text-transform:uppercase;color:#999;margin-bottom:5px;font-weight:500;}
-  .field input{width:100%;padding:10px 13px;border:1.5px solid #ddd;border-radius:8px;font-family:'Jost',sans-serif;font-size:.85rem;background:#fdfcfa;outline:none;transition:border .15s;}
+  .field input{width:100%;padding:10px 13px;border:1.5px solid #ddd;border-radius:8px;font-family:'Jost',sans-serif;font-size:.85rem;background:#fdfcfa;color:#1a1a1a;outline:none;transition:border .15s;}
   .field input:focus{border-color:#1a1a1a;}
   .field input.code{font-size:1.2rem;letter-spacing:.35em;text-transform:uppercase;text-align:center;font-family:'Cormorant Garamond',serif;font-weight:600;}
   .btn{display:block;width:100%;padding:10px 14px;border:none;border-radius:8px;font-family:'Jost',sans-serif;font-size:.72rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .15s;margin-top:8px;text-align:center;}
@@ -280,7 +226,7 @@ const css=`
   .badge{font-size:.55rem;background:#1a1a1a;color:#fff;padding:1px 6px;border-radius:10px;margin-left:4px;letter-spacing:.06em;}
   .badge.gold{background:#c9a227;}
   .sync-note{font-size:.65rem;color:#bbb;text-align:center;margin-bottom:8px;}
-  .game-layout{display:grid;grid-template-columns:1fr 216px;gap:14px;align-items:start;}
+  .game-layout{display:grid;grid-template-columns:1fr 220px;gap:14px;align-items:start;}
   .sec-label{font-size:.62rem;letter-spacing:.2em;font-weight:500;color:#bbb;text-transform:uppercase;margin-bottom:5px;}
   .nobles-row{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;}
   .tier-row{display:flex;gap:7px;margin-bottom:8px;align-items:center;}
@@ -334,9 +280,6 @@ const css=`
   .res-section{margin-top:6px;}
   .res-label{font-size:.58rem;color:#bbb;letter-spacing:.14em;text-transform:uppercase;margin-bottom:3px;}
   .res-cards{display:flex;gap:4px;flex-wrap:wrap;}
-  .mini-card{padding:2px 6px;border-radius:6px;font-size:.62rem;font-weight:500;border:1px solid rgba(0,0,0,.1);cursor:pointer;transition:all .1s;}
-  .mini-card:hover{transform:scale(1.06);}
-  .mini-card.can{border-color:#5cb85c;}
   .log-box{max-height:95px;overflow-y:auto;}
   .log-line{font-size:.66rem;color:#999;padding:2px 0;border-bottom:1px solid #f5f0e8;line-height:1.4;}
   .log-line:last-child{border-bottom:none;color:#333;font-weight:500;}
@@ -553,10 +496,8 @@ function GameBoard({gs,myId,onAction,toast}){
                       <div className="res-label">Reserved ({p.reserved.length}/3)</div>
                       <div className="res-cards">
                         {p.reserved.map(card=>(
-                          <div key={card.id} className={`mini-card ${isMe&&isMyTurn&&canAfford(card,me)?'can':''}`}
-                            style={{background:GEM_HEX[card.bonus]+'22',borderColor:GEM_HEX[card.bonus]+'88'}}
-                            onClick={()=>isMe&&isMyTurn&&doBuy(card,true)}>
-                            {card.bonus[0].toUpperCase()} {card.points>0?`+${card.points}`:''}
+                          <div key={card.id} style={{fontSize:'.6rem',padding:'1px 5px',borderRadius:6,background:GEM_HEX[card.bonus]+'22',border:`1px solid ${GEM_HEX[card.bonus]}66`,color:card.bonus==='white'?'#555':GEM_HEX[card.bonus],fontWeight:500}}>
+                            {card.bonus[0].toUpperCase()}{card.points>0?` +${card.points}`:''}
                           </div>
                         ))}
                       </div>
@@ -647,9 +588,7 @@ function GameBoard({gs,myId,onAction,toast}){
                         })}
                       </div>
                       {isMyTurn
-                        ?<button className="btn btn-dark" disabled={!affordable} onClick={()=>doBuy(card,true)} style={{padding:'5px 10px',fontSize:'.63rem',marginTop:0}}>
-                            {affordable?'Buy Now':'Need more gems'}
-                          </button>
+                        ?<button className="btn btn-dark" disabled={!affordable} onClick={()=>doBuy(card,true)} style={{padding:'5px 10px',fontSize:'.63rem',marginTop:0}}>{affordable?'✓ Buy Now':'Need more gems'}</button>
                         :<div style={{fontSize:'.6rem',color:'#bbb',textAlign:'center',padding:'2px 0'}}>Not your turn</div>
                       }
                     </div>
@@ -686,14 +625,14 @@ export default function App(){
   const poll=async()=>{
     if(!codeRef.current)return;
     try{
-      const{data}=await supabase.from('splendor_rooms').select('*').eq('code',codeRef.current).single();
-      if(!data)return;
+      const{data,error:e}=await supabase.from('splendor_rooms').select('*').eq('code',codeRef.current).single();
+      if(e||!data)return;
       setRoom(data);
       if(data.game_state){
         const newGs=typeof data.game_state==='string'?JSON.parse(data.game_state):data.game_state;
         setGs(prev=>{
           if(prev&&newGs.log&&prev.log&&newGs.log.length>prev.log.length){
-            newGs.log.slice(prev.log.length).forEach(l=>{if(l.includes('Noble')||l.includes('wins')||l.includes('🏆'))showToast(l);});
+            newGs.log.slice(prev.log.length).forEach(l=>{if(l.includes('Noble')||l.includes('🏆'))showToast(l);});
           }
           return newGs;
         });
@@ -706,7 +645,7 @@ export default function App(){
   const startPolling=(code)=>{
     codeRef.current=code;
     if(pollRef.current)clearInterval(pollRef.current);
-    poll(); // immediate first fetch
+    poll();
     pollRef.current=setInterval(poll,POLL_INTERVAL);
   };
 
@@ -727,7 +666,7 @@ export default function App(){
       setRoom({code,players,status:'waiting',host_id:myId});
       setScreen('waiting');
       startPolling(code);
-    }catch(e){setError("Failed to create room: "+e.message);}
+    }catch(e){setError("Error: "+e.message);}
     setLoading(false);
   };
 
@@ -753,7 +692,8 @@ export default function App(){
 
   const handleStart=async()=>{
     const newGs=initGameState(room.players);
-    await supabase.from('splendor_rooms').update({status:'playing',game_state:newGs}).eq('code',room.code);
+    const{error:e}=await supabase.from('splendor_rooms').update({status:'playing',game_state:newGs}).eq('code',room.code);
+    if(e)alert("Error starting game: "+e.message);
   };
 
   const handleAction=async(action)=>{
